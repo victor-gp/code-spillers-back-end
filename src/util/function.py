@@ -30,13 +30,17 @@ def recipesByIngredients(ingredientsList, maxRecpts='20', ranking='2', ignorePar
     ignoreParty = str(ignoreParty)
     ingredientsList = '%2C'.join(ingredientsList)
 
-    url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/findByIngredients"
-    querystring = {"number": maxRecpts, "ranking": ranking, "ignorePantry": ignoreParty, "ingredients": ingredientsList}
+
+    url = "https://webknox-recipes.p.rapidapi.com/recipes/findByIngredients"
 
     headers = {
-        'x-rapidapi-host': "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-        'x-rapidapi-key': "f550b025c9mshf7e779815980f33p1a185djsn190432425332"
+        'x-rapidapi-host': "webknox-recipes.p.rapidapi.com",
+        'x-rapidapi-key': "4c32ba28bfmsheaba004aa4615a2p15a6cejsnb468180d57cd"
     }
+
+
+    querystring = {"number": maxRecpts, "ranking": ranking, "ignorePantry": ignoreParty, "ingredients": ingredientsList}
+
 
     response = requests.request("GET", url, headers=headers, params=querystring)
 
@@ -217,7 +221,6 @@ def processInput(ingredientsList):
     finalJson = json.dumps(stepWiseRecipy, separators=('\n', ":"), )
     processLocker.release()
     return finalJson
-
 
 
 
