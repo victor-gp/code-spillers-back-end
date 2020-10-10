@@ -5,10 +5,11 @@ import threading
 
 from flask import current_app as app
 
-
 ingredLock = threading.RLock()
 posLock = threading.RLock()
 recipeLock = threading.RLock()
+imgDownloadLock = threading.RLock()
+processLocker = threading.RLock()
 
 
 
@@ -44,6 +45,28 @@ def recipesByIngredients(ingredientsList, maxRecpts='20', ranking='2', ignorePar
 
 
 
+def lemmatize(text):
+    '''
+    Input: text data with words separated with commas
+    Output: list of all available lemma (one per word)
+    '''
+
+    url = "https://twinword-twinword-bundle-v1.p.rapidapi.com/lemma_extract/"
+
+    querystring = {"text":text,}
+
+    headers = {
+        'x-rapidapi-host': "twinword-twinword-bundle-v1.p.rapidapi.com",
+        'x-rapidapi-key': "f550b025c9mshf7e779815980f33p1a185djsn190432425332"
+        }
+
+    response = requests.request("GET", url, headers=headers, params=querystring)
+    response=response.json()
+    ingredientsList=[key for key,value in response['lemma'].items()]
+    return ingredientsList
+
+
+
 
 def postProcess(data, ingredientsList):
     '''
@@ -51,7 +74,8 @@ def postProcess(data, ingredientsList):
         data : output received from API as JSON file
         ingredientsList: original list with Ingredients
     Output:
-        Yet not decided, so far it is list of dictionaries
+        list of dictionaries
+
     '''
     posLock.acquire()  ## maybe delete
     missedFlag = False
@@ -84,6 +108,14 @@ def postProcess(data, ingredientsList):
         if missedFlag == False:
             record = {'id': raw['id']}
             record['title'] = raw['title']
+
+            lemmaInp = [ingredient for ingredient in ingredientRecord if len(ingredient.split(" ")) == 1]
+            nonLemmaInp = [ingredient for ingredient in ingredientRecord if len(ingredient.split(" ")) > 1]
+
+            lemmaInp = ' '.join(lemmaInp)
+            ingredientRecord = lemmatize(lemmaInp)
+            ingredientRecord.extend(nonLemmaInp)
+
             record['ingredients'] = ingredientRecord
             output.append(record)
     posLock.release()
@@ -91,11 +123,38 @@ def postProcess(data, ingredientsList):
 
 
 
+def downloadImage(ID):
+    '''
+    Input: integer ID of recipe
+    Output: URL of image
+    '''
+    imgDownloadLock.acquire()
+
+    url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/%d/information" % (ID)
+
+    headers = {
+        'x-rapidapi-host': "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+        'x-rapidapi-key': "4c32ba28bfmsheaba004aa4615a2p15a6cejsnb468180d57cd"
+    }
+
+    response = requests.request("GET", url, headers=headers)
+
+    response = response.json()
+    image_url = response['image']
+    imgDownloadLock.release()
+    return image_url
+
+
+
 
 def getStepwiseRecipy(data, stepBreakdown='true'):
     '''
     Input:
-        data:
+        data: all previously preprocessed list of dictionaries
+        stepBrealdown: whether to provide very detailed intructions
+    output:
+        data received from previous processed, added with {'steps': list}, {'image_url':url}
+
     '''
 
     recipeLock.acquire()
@@ -119,50 +178,46 @@ def getStepwiseRecipy(data, stepBreakdown='true'):
 
         if len(response) == 0:
             continue
+        img_url=downloadImage(raw['id'])
+        raw['image_url']=img_url
         raw['steps'] = [record['step'] for record in response[0]['steps']]
         output.append(raw)
     recipeLock.release()
     return output
 
 
-imgDownloadLock = threading.RLock()
 
 
-def downloadImage(ID):
+
+def processInput(ingredientsList):
     '''
-    Under construction
+    Input:
+        ingredientsList: list of ingredients received from front-end
+    Ouput:
+        JSON file of format as list of dictionaries
+         [ {'id':id,
+            'title': titleRecipe,
+            'ingredeints': list of ingredients,
+            'image_url':url,
+            'steps': list of sentences,
+        }]
     '''
-    imgDownloadLock.acquire()
+    processLocker.acquire()
+    # lemmaInp = [ingredient for ingredient in ingredientsList if len(ingredient.split(" ")) == 1]
+    # nonLemmaInp = [ingredient for ingredient in ingredientsList if len(ingredient.split(" ")) > 1]
 
-    url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/%d/information" % (ID)
+    # lemmaInp = ' '.join(lemmaInp)
+    # ingredientsList = lemmatize(lemmaInp)
+    # ingredientsList.extend(nonLemmaInp)
 
-    headers = {
-        'x-rapidapi-host': "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
-        'x-rapidapi-key': "4c32ba28bfmsheaba004aa4615a2p15a6cejsnb468180d57cd"
-    }
+    recipes = recipesByIngredients(ingredientsList).json()
+    processedRecipes = postProcess(recipes, ingredientsList)
+    stepWiseRecipy = getStepwiseRecipy(processedRecipes)
 
-    response = requests.request("GET", url, headers=headers)
-
-    response = response.json()
-    image_url = response['image']
-    imgDownloadLock.release()
-    return image_url
-
-
-response = recipesByIngredients(
-    ['apples', 'bananas', 'mango', 'milk', 'ginger', 'meat', 'eggs', 'water', 'caramels', 'juice', 'spinach',
-     'cucumber', 'garlic', 'oil', 'baking soda', 'flour',
-     'potatoes', 'tomatoes', 'onion'])
-
-data=response.json()
-
-ingredientsList=['apples','bananas','mango','milk','ginger','meat','eggs','water','caramels','juice','spinach','cucumber','garlic','oil','baking soda','flour',
-                              'potatoes','tomatoes','onion']
-
-processed=postProcess(data,ingredientsList)
-pposData=getStepwiseRecipy(processed)
+    finalJson = json.dumps(stepWiseRecipy, separators=('\n', ":"), )
+    processLocker.release()
+    return finalJson
 
 
-print(data)
-print(processed)
-print(pposData)
+
+
