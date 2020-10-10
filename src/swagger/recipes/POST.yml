@@ -1,0 +1,26 @@
+Create an user based on the sent information
+---
+tags:
+  - recipes
+parameters:
+  - name: body
+    in: body
+    schema:
+      type: object
+      properties:
+        ingredients:
+          type: array
+          items:
+            type: string
+            description: a single ingredient
+            example: "bananas"
+
+responses:
+  200:
+    description: K recipes were successfully retrieved
+    schema:
+      MatchingRecipes:
+        type: array
+        items:
+          type: object
+          description: a recipe's components, TBD
