@@ -31,7 +31,8 @@ class RecipesResource(Resource):
 
         recipes = RecipesRepository.get_by_ingredients(ingredients)
 
-        return jsonify({"recipes": recipes})
+        #return jsonify({"recipes": recipes})
+        return recipes
 
 
 """

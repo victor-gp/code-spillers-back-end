@@ -1,17 +1,13 @@
 """ Defines the Recipes repository """
 
-#from util import recipesByIngredients
+from util import processInput
 
 class RecipesRepository:
     """ A repository for handling requests to the recipes API """
 
     @staticmethod
     def get_by_ingredients(ingredients):
-        # todo: your main method goes here, assume ingredients is a list of strings
-
-        api_response_stub = "hello foodie! wait a couple hours before we properly set up the API"
-
-        return api_response_stub
+        processInput(ingredients)
 
         """
 
