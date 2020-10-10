@@ -10,7 +10,7 @@ from flask_restful.reqparse import Argument
 from repositories import RecipesRepository
 from util import parse_params
 
-import sys
+from flask import current_app as app
 
 class RecipesResource(Resource):
     """ Verbs relative to the Recipes """
@@ -25,10 +25,9 @@ class RecipesResource(Resource):
     def post(ingredients):
         """ Return a list of 3 recipes based on the sent ingredients """
 
-        # debugging
-        print('DEBUG: writing to STDERR works fine', file=sys.stderr)
-        print( ", ".join(ingredients), file=sys.stderr )
-        # takes a server reload to show up in the container output (just Ctrl+S here!)
+        # example of logs for debugging
+        app.logger.info("[DEBUG] ingredients parsed:")
+        app.logger.info("[" + ", ".join(ingredients) + "]")
 
         recipes = RecipesRepository.get_by_ingredients(ingredients)
 
@@ -36,6 +35,11 @@ class RecipesResource(Resource):
 
 
 """
+
+expected input (after swagger rendering):
+
+curl -X POST "http://127.0.0.1:3000/application/recipes/" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"ingredients\" : [ \"apples\", \"bananas\", \"mango\", \"milk\", \"ginger\", \"meat\", \"eggs\", \"water\", \"caramels\", \"juice\", \"spinach\", \"cucumber\", \"garlic\", \"oil\", \"baking soda\", \"flour\", \"potatoes\", \"tomatoes\", \"onion\"]}"
+
 
 before swagger rendering:
 
@@ -47,11 +51,7 @@ before swagger rendering:
     "potatoes", "tomatoes", "onion"]
 }
 
-expected input, after swagger rendering:
-
-curl -X POST "http://127.0.0.1:3000/application/recipes/" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"ingredients\" : [ \"apples\", \"bananas\", \"mango\", \"milk\", \"ginger\", \"meat\", \"eggs\", \"water\", \"caramels\", \"juice\", \"spinach\", \"cucumber\", \"garlic\", \"oil\", \"baking soda\", \"flour\", \"potatoes\", \"tomatoes\", \"onion\"]}"
-
-transformed input:
+parsed input:
 
 ingredients = [
     "apples", "bananas", "mango", "milk", "ginger", "meat",

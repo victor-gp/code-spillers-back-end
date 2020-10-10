@@ -3,6 +3,9 @@ import re
 import requests
 import threading
 
+from flask import current_app as app
+
+
 ingredLock = threading.RLock()
 posLock = threading.RLock()
 recipeLock = threading.RLock()
