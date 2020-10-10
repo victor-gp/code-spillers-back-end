@@ -218,9 +218,9 @@ def processInput(ingredientsList):
     processedRecipes = postProcess(recipes, ingredientsList)
     stepWiseRecipy = getStepwiseRecipy(processedRecipes)
 
+    app.logger.info("[DEBUG] recipes result:")
+    app.logger.info(stepWiseRecipy)
+
     finalJson = json.dumps(stepWiseRecipy, separators=('\n', ":"), )
     processLocker.release()
     return finalJson
-
-
-
