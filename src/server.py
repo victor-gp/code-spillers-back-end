@@ -1,3 +1,4 @@
+import os
 from flasgger import Swagger
 from flask import Flask
 from flask.blueprints import Blueprint
@@ -5,6 +6,7 @@ from flask.blueprints import Blueprint
 import config
 import routes
 from models import db
+
 
 # config your API specs
 # you can define multiple specs in the case your api has multiple versions
@@ -42,4 +44,6 @@ for blueprint in vars(routes).values():
         server.register_blueprint(blueprint, url_prefix=config.APPLICATION_ROOT)
 
 if __name__ == "__main__":
-    server.run(host=config.HOST, port=config.PORT)
+    #server.run(host=config.HOST, port=config.PORT)
+    port = int(os.environ.get('PORT', config.PORT))
+    server.run(host='0.0.0.0', port=port)

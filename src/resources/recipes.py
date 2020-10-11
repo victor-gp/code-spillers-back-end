@@ -34,6 +34,11 @@ class RecipesResource(Resource):
         #return jsonify({"recipes": recipes})
         return recipes
 
+    @staticmethod
+    def get():
+        dummy_response = "hello foodie! please wait a few hours so we can properly set up the API"
+        return jsonify(dummy_response)
+
 
 """
 
