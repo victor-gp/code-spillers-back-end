@@ -30,8 +30,10 @@ class RecipesResource(Resource):
         app.logger.info("[" + ", ".join(ingredients) + "]")
 
         recipes = RecipesRepository.get_by_ingredients(ingredients)
+        app.logger.info("DEBUG: Im here at the end")
+        app.logger.info(recipes)
+        recipes=jsonify({"recipes": recipes})
 
-        #return jsonify({"recipes": recipes})
         return recipes
 
     @staticmethod

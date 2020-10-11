@@ -23,7 +23,7 @@ def recipesByIngredients(ingredientsList, maxRecpts='20', ranking='2', ignorePar
     Output:
         response from API converted into JSON
     '''
-    ingredLock.acquire()  ## maybe delete
+    # ingredLock.acquire()  ## maybe delete
 
     maxRecpts = str(maxRecpts)
     ranking = str(ranking)
@@ -44,7 +44,7 @@ def recipesByIngredients(ingredientsList, maxRecpts='20', ranking='2', ignorePar
 
     response = requests.request("GET", url, headers=headers, params=querystring)
 
-    ingredLock.release()  ## make be delete
+    # ingredLock.release()  ## make be delete
     return response
 
 
@@ -81,12 +81,14 @@ def postProcess(data, ingredientsList):
         list of dictionaries
 
     '''
-    posLock.acquire()  ## maybe delete
+    # posLock.acquire()  ## maybe delete
     missedFlag = False
 
     output = []
 
     for raw in data:
+
+
         ingrdtsList = ingredientsList.copy()
 
         ingredientRecord = list()
@@ -119,10 +121,11 @@ def postProcess(data, ingredientsList):
             lemmaInp = ' '.join(lemmaInp)
             ingredientRecord = lemmatize(lemmaInp)
             ingredientRecord.extend(nonLemmaInp)
-
             record['ingredients'] = ingredientRecord
+
+
             output.append(record)
-    posLock.release()
+    # posLock.release()
     return output
 
 
@@ -132,7 +135,7 @@ def downloadImage(ID):
     Input: integer ID of recipe
     Output: URL of image
     '''
-    imgDownloadLock.acquire()
+    # imgDownloadLock.acquire()
 
     url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/%d/information" % (ID)
 
@@ -145,7 +148,7 @@ def downloadImage(ID):
 
     response = response.json()
     image_url = response['image']
-    imgDownloadLock.release()
+    # imgDownloadLock.release()
     return image_url
 
 
@@ -161,7 +164,7 @@ def getStepwiseRecipy(data, stepBreakdown='true'):
 
     '''
 
-    recipeLock.acquire()
+    # recipeLock.acquire()
 
     output = list()
 
@@ -170,7 +173,6 @@ def getStepwiseRecipy(data, stepBreakdown='true'):
         raw['id'])
 
         querystring = {"stepBreakdown": stepBreakdown}
-        print(querystring)
         headers = {
             'x-rapidapi-host': "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
             'x-rapidapi-key': "4c32ba28bfmsheaba004aa4615a2p15a6cejsnb468180d57cd"
@@ -186,7 +188,7 @@ def getStepwiseRecipy(data, stepBreakdown='true'):
         raw['image_url']=img_url
         raw['steps'] = [record['step'] for record in response[0]['steps']]
         output.append(raw)
-    recipeLock.release()
+    # recipeLock.release()
     return output
 
 
@@ -206,7 +208,7 @@ def processInput(ingredientsList):
             'steps': list of sentences,
         }]
     '''
-    processLocker.acquire()
+    # processLocker.acquire()
     # lemmaInp = [ingredient for ingredient in ingredientsList if len(ingredient.split(" ")) == 1]
     # nonLemmaInp = [ingredient for ingredient in ingredientsList if len(ingredient.split(" ")) > 1]
 
@@ -214,13 +216,17 @@ def processInput(ingredientsList):
     # ingredientsList = lemmatize(lemmaInp)
     # ingredientsList.extend(nonLemmaInp)
 
+
+
     recipes = recipesByIngredients(ingredientsList).json()
+
     processedRecipes = postProcess(recipes, ingredientsList)
+
+
     stepWiseRecipy = getStepwiseRecipy(processedRecipes)
 
-    app.logger.info("[DEBUG] recipes result:")
+    app.logger.info('[DEBUG] stepWiseRecipy: ')
     app.logger.info(stepWiseRecipy)
-
-    finalJson = json.dumps(stepWiseRecipy, separators=('\n', ":"), )
-    processLocker.release()
-    return finalJson
+    #finalJson = json.dumps(stepWiseRecipy, separators=('\n', ":"), )
+    # processLocker.release()
+    return stepWiseRecipy
