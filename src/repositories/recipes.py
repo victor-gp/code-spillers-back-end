@@ -7,7 +7,7 @@ class RecipesRepository:
 
     @staticmethod
     def get_by_ingredients(ingredients):
-        processInput(ingredients)
+        return processInput(ingredients)
 
         """
 
