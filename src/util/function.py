@@ -219,10 +219,11 @@ def getStepwiseRecipy(data, stepBreakdown='true'):
         response = response.json()
 
         if len(response) == 0:
-            continue
+            raw['steps']=list()
+        else:
+            raw['steps'] = [record['step'] for record in response[0]['steps']]
         img_url=downloadImage(raw['id'])
         raw['image_url']=img_url
-        raw['steps'] = [record['step'] for record in response[0]['steps']]
         output.append(raw)
     # recipeLock.release()
     return output
