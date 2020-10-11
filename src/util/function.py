@@ -70,6 +70,41 @@ def lemmatize(text):
     return ingredientsList
 
 
+def getNutriotion(ID):
+    url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/%d/nutritionWidget.json" % ID
+    headers = {
+        'x-rapidapi-host': "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+        'x-rapidapi-key': "31d006966cmsh9614873845ef7d2p12bff3jsnd96e7b0355ba"
+    }
+    response = requests.request("GET", url, headers=headers)
+    response = response.json()
+
+    record = {'calories': response['calories']}
+    record['carbs'] = response['carbs']
+    record['fat'] = response['fat']
+    record['protein'] = response['protein']
+    return record
+
+
+
+def getVideoByRecipe(recipeTitle):
+    url = "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/food/videos/search"
+
+    querystring = {"query": recipeTitle, "minLength": "00", "maxLength": "999", "offset": "0", "number": "1"}
+
+    headers = {
+        'x-rapidapi-host': "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com",
+        'x-rapidapi-key': "4c32ba28bfmsheaba004aa4615a2p15a6cejsnb468180d57cd"
+    }
+
+    response = requests.request("GET", url, headers=headers, params=querystring)
+    response = response.json()
+    if len(response['videos']) == 0:
+        return 'none'
+    video = response['videos'][0]['youTubeId']
+
+    return 'youtube.com/watch?v=' + video
+
 
 
 def postProcess(data, ingredientsList):
@@ -122,7 +157,8 @@ def postProcess(data, ingredientsList):
             ingredientRecord = lemmatize(lemmaInp)
             ingredientRecord.extend(nonLemmaInp)
             record['ingredients'] = ingredientRecord
-
+            record['video_url'] = getVideoByRecipe(raw['title'])
+            record['nutritions'] = getNutriotion(raw['id'])
 
             output.append(record)
     # posLock.release()
