@@ -2,7 +2,7 @@
 
 This is the back-end for the [Recipely app](https://github.com/JinhaJjing/CodeSpillers) that Team Code Spillers developed during JunctionX Seoul 2020. 
 
-Team Code Spillers was: Eve, Farrukh Olimov, JinHa Suh, Seung Hyun Lee, Shikha Dubey, Victor Gonzalez Prieto.
+Team Code Spillers was: Eve, Farrukh Olimov, JinHa Suh, Seung Hyun Lee, [Shikha Dubey](https://github.com/shikha-gist/), Victor Gonzalez Prieto.
 
 The server is no longer running but you can find a short demo of the app [here](https://www.youtube.com/watch?v=RfBj1pXpNwo&feature=youtu.be).
 
